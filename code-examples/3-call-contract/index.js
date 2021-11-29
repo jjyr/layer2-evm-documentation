@@ -10,12 +10,12 @@ const { PolyjuiceHttpProvider, PolyjuiceAccounts } = require("@polyjuice-provide
  * - YOUR_WRITE_FUNCTION_NAME method name
  */
 
-const ACCOUNT_PRIVATE_KEY = '<YOUR_ETHEREUM_PRIVATE_KEY>'; // Replace this with your Ethereum private key with funds on Layer 2.
-const CONTRACT_ABI = [<YOUR_CONTRACT_ABI>]; // this should be an Array []
-const CONTRACT_ADDRESS = '<YOUR_CONTRACT_ADDRESS>';
+// const ACCOUNT_PRIVATE_KEY = '0x0000000000000000000000000000000000000000000000000000000000000000'; // Replace this with your Ethereum private key with funds on Layer 2.
+const CONTRACT_ABI = require("./IERC20.json").abi; // this should be an Array []
+const CONTRACT_ADDRESS = '0x9D9599c41383D7009C2093319d576AA6F89A4449';
 
 const polyjuiceConfig = {
-    web3Url: 'https://godwoken-testnet-web3-rpc.ckbapp.dev',
+    web3Url: 'https://mainnet.godwoken.io/rpc',
     abiItems: CONTRACT_ABI
 };
   
@@ -27,14 +27,14 @@ const provider = new PolyjuiceHttpProvider(
 const web3 = new Web3(provider);
 
 web3.eth.accounts = new PolyjuiceAccounts(polyjuiceConfig);
-const account = web3.eth.accounts.wallet.add(ACCOUNT_PRIVATE_KEY);
+// const account = web3.eth.accounts.wallet.add(ACCOUNT_PRIVATE_KEY);
 web3.eth.Contract.setProvider(provider, web3.eth.accounts);
 
 async function readCall() {
     const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
 
-    const callResult = await contract.methods.YOUR_READ_FUNCTION_NAME().call({
-        from: account.address
+    const callResult = await contract.methods.balanceOf("0x085a61d7164735FC5378E590b5ED1448561e1a48").call({
+        // from: account.address
     });
 
     console.log(`Read call result: ${callResult}`);
@@ -43,7 +43,7 @@ async function readCall() {
 async function writeCall() {
     const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
 
-    const tx = contract.methods.YOUR_WRITE_FUNCTION_NAME().send(
+    const tx = contract.methods.transfer(account.address, 2222).send(
         {
             from: account.address,
             gas: 6000000
@@ -58,7 +58,9 @@ async function writeCall() {
 }
 
 (async () => {
-    const balance = BigInt(await web3.eth.getBalance(account.address));
+    const balance = BigInt(await web3.eth.getBalance("0x085a61d7164735FC5378E590b5ED1448561e1a48"));
+
+    console.log(balance);
 
     if (balance === 0n) {
         console.log(`Insufficient balance. Can't issue a smart contract call. Please deposit funds to your Ethereum address: ${account.address}`);
@@ -71,7 +73,7 @@ async function writeCall() {
     await readCall();
 
     // Change smart contract state.
-    await writeCall();
+    // await writeCall();
 
     // Check smart contract state after state change.
     await readCall();
